@@ -1,0 +1,111 @@
+#--[ Intro ]---------------------------------------------------------#
+#                                                                    #
+# Tur-Undupe. A script to let users undupe single files through irc. #
+#                                                                    #
+# I previously used eur0dance's public undupe, but it has a few      #
+# shortcomings in that it dosnt specify if something went wrong or   #
+# similar. Plus, this one is 100% standalone from your botscript.    #
+#                                                                    #
+# So I decided to make my own that checks if the files can be        #
+# executed, if the dupefile can be written to, that the user         #
+# specified really has flag C and that the file was indeed unduped.  #
+# It will also tell you who duped the undupe file and when.          #
+#                                                                    #
+#--[ Install ]-------------------------------------------------------#
+#                                                                    #
+# Copy tur-undupe.sh to /glftpd/bin. Make it executable (chmod 755). #
+#-                                                                  -#
+# Copy tur-undupe.tcl to your bots scripts dir and load it in the    #
+#  config file.                                                      #
+#  If you previously used eur0dance's undupe script in your bot,     #
+#  either remove that or just load this one AFTER the botscript.     #
+#-                                                                  -#
+# The most important part: The undupe binary in /glftpd/bin          #
+# must be executed as root since the permissions on the dupefile     #
+# changes. So, chmod +s /glftpd/bin/undupe                           #
+# Also, make sure the undupe binary works for you. A number of       #
+# glftpd distributions comes with an undupe binary that just dosnt   #
+# work. Run it from shell ( /glftpd/bin/undupe ) and it should give  #
+# you the help text. If it does, fine. If not and its just a blank   #
+# response, you'll need to recompile it from source:                 #
+#  rm /glftpd/bin/undupe                                             #
+#  cd /glftpd/bin/sources                                            #
+#  gcc -o /glftpd/bin/undupe undupe.c                                #
+# Remember to redo the permissions on the file.                      #
+#                                                                    #
+# If your linux distro dosnt support +s, you'll need to find a way   #
+# so that the undupe binary is always executed as root (sudo etc).   #
+#                                                                    #
+# Errors like "unduping blabla - FAILED" means we cant write to the  #
+# dupefile.                                                          #
+#                                                                    #
+#-                                                                  -#
+# Change the settings below:                                         #
+#                                                                    #
+#--[ Settings ]------------------------------------------------------#
+#                                                                    #
+# undupe   = Path to the undupe binary. Comes with glftpd.           #
+#                                                                    #
+# dupelist = Path to the dupelist binary. Comes with glftpd.         #
+#                                                                    #
+#            NOTE: If you do not have glftpd.conf in /etc, you'll    #
+#            need to edit dupelist.c and change the path manually.   #
+#            if((fp = fopen("/etc/glftpd.conf", "r")) == NULL)       #
+#                            ^^^^^^^^^^^^^^^^                        #
+#            Then recomple the source:                               #
+#            gcc -o /glftpd/bin/dupelist dupelist.c                  #
+#                                                                    #
+#            Run it from shell. Make sure it spits out a lot of      #
+#            filenames.                                              #
+#                                                                    #
+# dupefile = Full path to the dupefile file.                         #
+#                                                                    #
+# glconf   = Full path to glftpd.conf                                #
+#                                                                    #
+# datebin  = We use some functions that requires 'date -d'. Not all  #
+#            date binaries support that. FBSD users needs to         #
+#            compile the sh-utils package and use the full path to   #
+#            'gdate' here.                                           #
+#            Otherwise, if date is in your path, leave this empty or #
+#            specify full path it (Most people can leave it empty).  #
+#                                                                    #
+# username = Username that will do the unduping. This user must      #
+#            exist and have flag C.                                  #
+#                                                                    #
+# usersdir = Path to your users.                                     #
+#                                                                    #
+# header   = This will be the header or all output to irc.           #
+#                                                                    #
+#--[ Usage ]---------------------------------------------------------#
+#                                                                    #
+# The default trigger is !undupe <filename>.                         #
+# No filename will result in a 'usage' text.                         #
+# Only single files can be unduped for security reasons. No, * does  #
+# not work.                                                          #
+#                                                                    #
+# If, when unduping, it says something like 12421Days, 9hours...     #
+# then you probably have different times in glftpd and shell. The    #
+# time inside glftpd needs to match that in the shell.               #
+# Run 'site time' inside glftpd and check if thats the case. If it   #
+# is, check the FAQ for glftpd for how to fix it.                    #
+# Also see Changelog entry for version 1.1.                          #
+#                                                                    #
+#--[ Changelog ]-----------------------------------------------------#
+#                                                                    #
+# 1.1    : Some glftpd systems seems to have problems writing the    #
+#          correct upload time into the dupefile, making that a 0.   #
+#          Actually, it seems the glftpds undupe binary sets some    #
+#          files to 0 seconds. I'm not sure on when.                 #
+#          This looks dumb when it says that something is 13388 days #
+#          old at the time of the undupe.                            #
+#          The fix is very advanced! If filetime is 0, do not even   #
+#          try to calculate the age and dont display anything about  #
+#          the age.                                                  #
+#          WHO uploaded it will still be displayed.                  #
+#                                                                    #
+# 1.0.1  : Removed the check if we can write to the dupefile. It was #
+#          not accurate since the undupe binary should run as root   #
+#          but running the check if we could write to it was done by #
+#          the user running the bot.                                 #
+#                                                                    #
+#          Changed the installation procedure above.                 #
