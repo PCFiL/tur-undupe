@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.1
+VER=1.2
 #--[ Intro ]---------------------------------------------------------#
 #                                                                    #
 # Tur-Undupe. A script to let users undupe single files through irc. #
