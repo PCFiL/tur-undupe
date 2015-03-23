@@ -7,9 +7,9 @@
 # similar. Plus, this one is 100% standalone from your botscript.    #
 #                                                                    #
 # So I decided to make my own that checks if the files can be        #
-# executed, if the dupefile can be written to, that the user         #
-# specified really has flag C and that the file was indeed unduped.  #
-# It will also tell you who duped the undupe file and when.          #
+# executed, if the dupefile can be written to and that the file was  #
+# indeed unduped. It will also tell you who duped the undupe file    #
+# and when.                                                          #
 #                                                                    #
 #--[ Install ]-------------------------------------------------------#
 #                                                                    #
@@ -24,7 +24,7 @@
 # must be executed as root since the permissions on the dupefile     #
 # changes. So, chmod +s /glftpd/bin/undupe                           #
 # Also, make sure the undupe binary works for you. A number of       #
-# glftpd distributions comes with an undupe binary that just dosnt   #
+# glftpd distributions comes with an undupe binary that just doesn't #
 # work. Run it from shell ( /glftpd/bin/undupe ) and it should give  #
 # you the help text. If it does, fine. If not and its just a blank   #
 # response, you'll need to recompile it from source:                 #
@@ -69,11 +69,6 @@
 #            Otherwise, if date is in your path, leave this empty or #
 #            specify full path it (Most people can leave it empty).  #
 #                                                                    #
-# username = Username that will do the unduping. This user must      #
-#            exist and have flag C.                                  #
-#                                                                    #
-# usersdir = Path to your users.                                     #
-#                                                                    #
 # header   = This will be the header or all output to irc.           #
 #                                                                    #
 #--[ Usage ]---------------------------------------------------------#
@@ -91,6 +86,13 @@
 # Also see Changelog entry for version 1.1.                          #
 #                                                                    #
 #--[ Changelog ]-----------------------------------------------------#
+#                                                                    #
+# 1.2    : The undupe binary which comes with glftpd >2.05.1 doesn't #
+#          allow -u and -f to be specified together. In fact -u is   #
+#          NOT used to set the user who does the unduping. When -u   #
+#          is given all files uploaded by this user are unduped.     #
+#          The username and usersdir variables and all references to #
+#          them are therefore removed.                               #
 #                                                                    #
 # 1.1    : Some glftpd systems seems to have problems writing the    #
 #          correct upload time into the dupefile, making that a 0.   #

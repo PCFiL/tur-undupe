@@ -1,5 +1,5 @@
 #!/bin/bash
-VER=1.1
+VER=1.2
 #--[ Intro ]---------------------------------------------------------#
 #                                                                    #
 # Tur-Undupe. A script to let users undupe single files through irc. #
@@ -9,9 +9,9 @@ VER=1.1
 # similar. Plus, this one is 100% standalone from your botscript.    #
 #                                                                    #
 # So I decided to make my own that checks if the files can be        #
-# executed, if the dupefile can be written to, that the user         #
-# specified really has flag C and that the file was indeed unduped.  #
-# It will also tell you who duped the undupe file and when.          #
+# executed, if the dupefile can be written to and that the file was  #
+# indeed unduped. It will also tell you who duped the undupe file    #
+# and when.                                                          #
 #                                                                    #
 #--[ Install ]-------------------------------------------------------#
 #                                                                    #
@@ -26,7 +26,7 @@ VER=1.1
 # must be executed as root since the permissions on the dupefile     #
 # changes. So, chmod +s /glftpd/bin/undupe                           #
 # Also, make sure the undupe binary works for you. A number of       #
-# glftpd distributions comes with an undupe binary that just dosnt   #
+# glftpd distributions comes with an undupe binary that just doesn't #
 # work. Run it from shell ( /glftpd/bin/undupe ) and it should give  #
 # you the help text. If it does, fine. If not and its just a blank   #
 # response, you'll need to recompile it from source:                 #
@@ -71,11 +71,6 @@ VER=1.1
 #            Otherwise, if date is in your path, leave this empty or #
 #            specify full path it (Most people can leave it empty).  #
 #                                                                    #
-# username = Username that will do the unduping. This user must      #
-#            exist and have flag C.                                  #
-#                                                                    #
-# usersdir = Path to your users.                                     #
-#                                                                    #
 # header   = This will be the header or all output to irc.           #
 #                                                                    #
 #--[ Usage ]---------------------------------------------------------#
@@ -93,6 +88,13 @@ VER=1.1
 # Also see Changelog entry for version 1.1.                          #
 #                                                                    #
 #--[ Changelog ]-----------------------------------------------------#
+#                                                                    #
+# 1.2    : The undupe binary which comes with glftpd >2.05.1 doesn't #
+#          allow -u and -f to be specified together. In fact -u is   #
+#          NOT used to set the user who does the unduping. When -u   #
+#          is given all files uploaded by this user are unduped.     #
+#          The username and usersdir variables and all references to #
+#          them are therefore removed.                               #
 #                                                                    #
 # 1.1    : Some glftpd systems seems to have problems writing the    #
 #          correct upload time into the dupefile, making that a 0.   #
@@ -119,9 +121,6 @@ dupelist=/glftpd/bin/dupelist
 dupefile=/glftpd/ftp-data/logs/dupefile
 glconf=/etc/glftpd.conf
 datebin=""
-
-username=glftpd
-usersdir=/glftpd/ftp-data/users
 
 header="\002-xXx-\002 [UNDUPE] -"
 
@@ -228,22 +227,7 @@ proc_checkexist() {
 
 proc_verify() {
   if [ "$NOCHECK" != "TRUE" ]; then
-    if [ ! -e "$usersdir/$username" ]; then
-      echo -e "$header Error. Defined user '$username' does not exist in usersdir."
-      echo -e "$header If this is a jailed installation and/or you are sure he has flag C, then add NOCHECK=TRUE"
-      echo -e "$header somewhere in the script."
-      exit 0
-    elif [ ! -r "$usersdir/$username" ]; then
-      echo -e "$header Error. Defined user $username can not be read for verification of flag C."
-      echo -e "$header If this is a jailed installation and/or you are sure he has flag C, then add NOCHECK=TRUE"
-      echo -e "$header somewhere in the script."
-      exit 0
-    elif [ -z "`grep "^FLAGS [0-9a-zA-Z]*C" $usersdir/$username`" ]; then
-      echo -e "$header Error. Defined user '$username' does not have permission to undupe (flag C)."
-      echo -e "$header If this is a jailed installation and/or you are sure he has flag C, then add NOCHECK=TRUE"
-      echo -e "$header somewhere in the script."
-      exit 0
-    elif [ -z "`$datebin --help | grep "\-d\,"`" ]; then
+    if [ -z "`$datebin --help | grep "\-d\,"`" ]; then
       echo -e "$header Error. It does not seem like your date binary supports the -d option."
       echo -e "$header Download a GNU compliant date binary (FBSD, compile sh-utils for gdate)"
       echo -e "$header and specify it as datebin in this script."
@@ -289,7 +273,7 @@ else
   else
     echo -en "$header Unduping \002$A1\002, uploaded by $filewho"
   fi
-  $undupe -u ${username} -r ${glconf} -f ${A1} | grep "DontShowThisText"
+  $undupe -r ${glconf} -f ${A1} | grep "DontShowThisText"
   proc_checkexist
   if [ "$filename" ]; then
     if [ "$NOCHECK" = "TRUE" ]; then
